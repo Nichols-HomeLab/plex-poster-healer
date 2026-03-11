@@ -6,6 +6,7 @@ from PIL import Image
 from plex_poster_healer.config import Settings
 from plex_poster_healer.healer import PosterHealer
 from plex_poster_healer.models import ArtworkCandidate
+from plex_poster_healer.providers.plex_metadata import PlexMetadataProvider
 
 
 class FakePlex:
@@ -108,3 +109,12 @@ def test_heal_skips_invalid_high_priority_candidate_and_uses_next(tmp_path: Path
 
     assert results[0].replacement_source == "tmdb"
     assert any("plex_metadata invalid" in reason for reason in results[0].reasons)
+
+
+def test_plex_metadata_provider_keeps_absolute_urls() -> None:
+    fake_plex = SimpleNamespace(server=SimpleNamespace(url=lambda key, includeToken=True: f"http://plex.local{key}"))
+    absolute = PlexMetadataProvider._resolve_url(fake_plex, "https://image.tmdb.org/t/p/original/test.jpg")
+    relative = PlexMetadataProvider._resolve_url(fake_plex, "/library/metadata/123/thumb")
+
+    assert absolute == "https://image.tmdb.org/t/p/original/test.jpg"
+    assert relative == "http://plex.local/library/metadata/123/thumb"

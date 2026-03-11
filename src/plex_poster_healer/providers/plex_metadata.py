@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import urlparse
 
 from plex_poster_healer.config import Settings
 from plex_poster_healer.models import ArtworkCandidate
@@ -17,6 +18,13 @@ class PlexMetadataProvider(ArtworkProvider):
         self.cache_dir = settings.cache_dir / "plex_metadata"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
+    @staticmethod
+    def _resolve_url(plex: PlexClient, key: str) -> str:
+        parsed = urlparse(key)
+        if parsed.scheme and parsed.netloc:
+            return key
+        return plex.server.url(key, includeToken=True)
+
     def get_candidates(self, item) -> list[ArtworkCandidate]:
         posters = getattr(item, "posters", None)
         if not callable(posters):
@@ -29,7 +37,7 @@ class PlexMetadataProvider(ArtworkProvider):
             key = getattr(poster, "key", None)
             if not key:
                 continue
-            url = self.plex.server.url(key, includeToken=True)
+            url = self._resolve_url(self.plex, key)
             poster_bytes, _ = self.plex.download_url(url)
             suffix = Path(key).suffix or ".jpg"
             target = self.cache_dir / f"{item.ratingKey}_{index}{suffix}"
@@ -45,4 +53,3 @@ class PlexMetadataProvider(ArtworkProvider):
             if len(candidates) >= 5:
                 break
         return candidates
-
