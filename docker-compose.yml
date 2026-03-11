@@ -1,0 +1,15 @@
+services:
+  plex-poster-healer:
+    build: .
+    container_name: plex-poster-healer
+    env_file:
+      - .env
+    volumes:
+      - ./config.example.yaml:/app/config/config.yaml:ro
+      - ./data/backups:/app/data/backups
+      - ./data/assets:/app/data/assets
+      - ./data/cache:/app/data/cache
+      - ./data/reports:/app/data/reports
+    command: ["plex-poster-healer", "scan", "--config", "/app/config/config.yaml"]
+    restart: "no"
+
