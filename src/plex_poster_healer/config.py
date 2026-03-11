@@ -30,6 +30,8 @@ class Settings(BaseModel):
     imdb_revision_id: str | None = None
     imdb_asset_id: str | None = None
     imdb_region: str = "us-east-1"
+    image_backend: Literal["auto", "pillow", "opencv"] = "auto"
+    prefer_opencl: bool = True
     backup_dir: Path = Path("backups")
     assets_dir: Path | None = None
     cache_dir: Path = Path("cache")
@@ -71,6 +73,8 @@ def load_settings(config_path: str | Path | None = None) -> Settings:
         "imdb_revision_id": os.getenv("PPH_IMDB_REVISION_ID"),
         "imdb_asset_id": os.getenv("PPH_IMDB_ASSET_ID"),
         "imdb_region": os.getenv("PPH_IMDB_REGION"),
+        "image_backend": os.getenv("PPH_IMAGE_BACKEND"),
+        "prefer_opencl": os.getenv("PPH_PREFER_OPENCL"),
     }
     merged = {**data, **{k: v for k, v in env_overrides.items() if v}}
     settings = Settings.model_validate(merged)

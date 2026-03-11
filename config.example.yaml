@@ -8,6 +8,8 @@ imdb_data_set_id: your-imdb-dataset-id
 imdb_revision_id: your-imdb-revision-id
 imdb_asset_id: your-imdb-asset-id
 imdb_region: us-east-1
+image_backend: opencv
+prefer_opencl: true
 backup_dir: /app/data/backups
 assets_dir: /app/data/assets
 cache_dir: /app/data/cache

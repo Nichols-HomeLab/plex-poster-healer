@@ -6,6 +6,7 @@ from typing import Sequence
 
 from plex_poster_healer.config import load_settings
 from plex_poster_healer.healer import PosterHealer
+from plex_poster_healer.image_checks import describe_acceleration
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -42,6 +43,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     logging.basicConfig(level=getattr(logging, args.log_level.upper(), logging.INFO))
 
     settings = load_settings(args.config)
+    logging.getLogger(__name__).info("Image acceleration: %s", describe_acceleration(settings.image_backend, settings.prefer_opencl))
     healer = PosterHealer(settings)
     common_kwargs = {
         "library": args.library,
@@ -68,4 +70,3 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

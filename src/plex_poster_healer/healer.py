@@ -116,7 +116,12 @@ class PosterHealer:
                 )
                 continue
 
-            check = validate_image_bytes(poster_bytes, self.settings.scan_thresholds)
+            check = validate_image_bytes(
+                poster_bytes,
+                self.settings.scan_thresholds,
+                backend=self.settings.image_backend,
+                prefer_opencl=self.settings.prefer_opencl,
+            )
             status = "ok" if check.ok else "failed"
             if check.sha256 and check.ok:
                 self.hash_store["accepted"][check.sha256] = {"title": item.title, "rating_key": item.ratingKey}
@@ -196,7 +201,12 @@ class PosterHealer:
             replacement_found = False
             for candidate in self._iter_replacement_candidates(item):
                 candidate_bytes = candidate.path.read_bytes()
-                check = validate_image_bytes(candidate_bytes, self.settings.scan_thresholds)
+                check = validate_image_bytes(
+                    candidate_bytes,
+                    self.settings.scan_thresholds,
+                    backend=self.settings.image_backend,
+                    prefer_opencl=self.settings.prefer_opencl,
+                )
                 if not check.ok:
                     record.reasons.extend([f"{candidate.source} invalid: {reason}" for reason in check.reasons])
                     continue

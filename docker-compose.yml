@@ -4,12 +4,17 @@ services:
     container_name: plex-poster-healer
     env_file:
       - .env
+    environment:
+      PPH_IMAGE_BACKEND: opencv
+      PPH_PREFER_OPENCL: "true"
     volumes:
       - ./config.example.yaml:/app/config/config.yaml:ro
       - ./data/backups:/app/data/backups
       - ./data/assets:/app/data/assets
       - ./data/cache:/app/data/cache
       - ./data/reports:/app/data/reports
+      - /dev/dri:/dev/dri
+    devices:
+      - /dev/dri:/dev/dri
     command: ["plex-poster-healer", "scan", "--config", "/app/config/config.yaml"]
     restart: "no"
-

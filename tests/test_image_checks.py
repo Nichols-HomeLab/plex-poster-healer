@@ -15,14 +15,14 @@ def test_valid_image_fixture_is_accepted(tmp_path) -> None:
     image.save(path)
     data = path.read_bytes()
     thresholds = ScanThresholds(min_width=1, min_height=1, min_entropy=1.0, max_single_color_ratio=0.95)
-    result = validate_image_bytes(data, thresholds)
+    result = validate_image_bytes(data, thresholds, backend="pillow")
     assert result.ok is True
     assert result.reasons == []
 
 
 def test_invalid_image_fixture_is_rejected() -> None:
     data = (Path(__file__).parent / "fixtures" / "bad_poster.jpg").read_bytes()
-    result = validate_image_bytes(data, ScanThresholds())
+    result = validate_image_bytes(data, ScanThresholds(), backend="pillow")
     assert result.ok is False
     assert any("invalid content type" in reason or "decode failure" in reason for reason in result.reasons)
 
@@ -32,7 +32,11 @@ def test_low_entropy_image_is_rejected() -> None:
     tmp = Path(__file__).parent / "fixtures" / "generated-low-entropy.png"
     image.save(tmp)
     try:
-        result = validate_image_bytes(tmp.read_bytes(), ScanThresholds(min_entropy=3.0, max_single_color_ratio=0.5))
+        result = validate_image_bytes(
+            tmp.read_bytes(),
+            ScanThresholds(min_entropy=3.0, max_single_color_ratio=0.5),
+            backend="pillow",
+        )
         assert result.ok is False
         assert any("entropy too low" in reason for reason in result.reasons)
     finally:

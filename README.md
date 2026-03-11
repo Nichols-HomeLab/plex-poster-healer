@@ -13,6 +13,7 @@ This version supports:
 - CLI commands for `scan`, `heal`, `backup`, and `restore`
 - JSON and HTML reports
 - Docker and `docker-compose` setup
+- Best-effort OpenCV/OpenCL image path for iGPU-backed poster checks
 - GitHub Actions workflow to publish `ghcr.io/<owner>/<repo>:latest`
 
 Deferred for later iterations:
@@ -59,6 +60,8 @@ imdb_data_set_id: your-imdb-dataset-id
 imdb_revision_id: your-imdb-revision-id
 imdb_asset_id: your-imdb-asset-id
 imdb_region: us-east-1
+image_backend: opencv
+prefer_opencl: true
 backup_dir: /app/data/backups
 assets_dir: /app/data/assets
 cache_dir: /app/data/cache
@@ -169,6 +172,10 @@ The workflow at [.github/workflows/publish-docker.yml](/home/ubuntu/plex-poster-
 
 - `ghcr.io/<owner>/<repo>:latest`
 - `ghcr.io/<owner>/<repo>:sha-<commit>`
+
+## iGPU Notes
+
+`docker-compose.yml` now mounts `/dev/dri` to match your Plex stack and defaults the healer to `image_backend: opencv`. When OpenCV can see an OpenCL-capable Intel runtime, the image checks use that path; otherwise they fall back to CPU safely. For Docker hosts, the practical requirement is that the node exposes a usable `/dev/dri` render device and the container has the matching runtime libraries.
 
 ## Tests
 
