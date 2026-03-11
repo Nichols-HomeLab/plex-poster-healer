@@ -161,7 +161,10 @@ class PosterHealer:
             provider = self.providers.get(source)
             if not provider:
                 continue
-            ordered.extend(provider.get_candidates(item))
+            try:
+                ordered.extend(provider.get_candidates(item))
+            except Exception as exc:
+                LOGGER.warning("Provider %s failed for %s [%s]: %s", source, item.title, item.type, exc)
         ordered.sort(key=lambda candidate: candidate.score, reverse=True)
         return ordered
 

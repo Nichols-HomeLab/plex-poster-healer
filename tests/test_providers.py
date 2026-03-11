@@ -32,6 +32,11 @@ class StubProvider:
         return self.candidates
 
 
+class RaisingProvider:
+    def get_candidates(self, item):
+        raise RuntimeError("provider boom")
+
+
 def make_settings(tmp_path: Path) -> Settings:
     settings = Settings(
         plex_url="http://example",
@@ -118,3 +123,35 @@ def test_plex_metadata_provider_keeps_absolute_urls() -> None:
 
     assert absolute == "https://image.tmdb.org/t/p/original/test.jpg"
     assert relative == "http://plex.local/library/metadata/123/thumb"
+
+
+def test_heal_skips_provider_exceptions(tmp_path: Path) -> None:
+    settings = make_settings(tmp_path)
+    good_poster = tmp_path / "good.png"
+    image = Image.new("RGB", (300, 450))
+    for x in range(300):
+        for y in range(450):
+            image.putpixel((x, y), ((x * 13) % 255, (y * 9) % 255, ((x + y) * 7) % 255))
+    image.save(good_poster)
+    item = SimpleNamespace(
+        title="Movie",
+        type="movie",
+        ratingKey="123",
+        thumb="/library/metadata/123/thumb",
+        current_bytes=b"invalid",
+    )
+    fake_plex = FakePlex([("Movies", item)])
+    healer = PosterHealer(settings, plex=fake_plex)
+    healer.providers = {
+        "local_assets": StubProvider([]),
+        "local_posters": StubProvider([]),
+        "plex_metadata": RaisingProvider(),
+        "tmdb": StubProvider([ArtworkCandidate(source="tmdb", path=good_poster, score=(1, 50))]),
+        "tvdb": StubProvider([]),
+        "imdb": StubProvider([]),
+    }
+
+    results = healer.heal(dry_run=True)
+
+    assert results[0].replacement_source == "tmdb"
+    assert results[0].status == "dry-run"
